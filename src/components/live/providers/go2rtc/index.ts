@@ -17,6 +17,10 @@ import { homeAssistantSignPath } from '../../../../ha/sign-path.js';
 import { HomeAssistant } from '../../../../ha/types.js';
 import { createProxiedEndpointIfNecessary } from '../../../../ha/web-proxy.js';
 import { localize } from '../../../../localize/localize.js';
+import {
+  registerPTTSender,
+  unregisterPTTSender,
+} from '../../../../ptt-registry.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
 import { MediaPlayer, MediaPlayerController, Message } from '../../../../types.js';
 import { errorToConsole } from '../../../../utils/basic.js';
@@ -54,6 +58,9 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   @property({ attribute: false })
   public microphoneConfig?: MicrophoneConfig;
 
+  @property({ attribute: false })
+  public pttCardID?: string;
+
   @property({ attribute: true, type: Boolean })
   public controls = false;
 
@@ -62,6 +69,8 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
   protected _player?: VideoRTC;
   protected _microphoneTransceiver: RTCRtpTransceiver | null = null;
+  protected _registeredPTTCardID?: string;
+  protected _registeredPTTSender?: RTCRtpSender;
 
   protected _mediaPlayerController = new VideoMediaPlayerController(
     this,
@@ -74,6 +83,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   }
 
   disconnectedCallback(): void {
+    this._clearPTTSenderRegistration();
     this._player = undefined;
     this._microphoneTransceiver = null;
     this._message = null;
@@ -162,10 +172,41 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     return result;
   }
 
+  protected _clearPTTSenderRegistration(): void {
+    if (this._registeredPTTCardID && this._registeredPTTSender) {
+      unregisterPTTSender(this._registeredPTTCardID, this._registeredPTTSender);
+    }
+    this._registeredPTTCardID = undefined;
+    this._registeredPTTSender = undefined;
+  }
+
+  protected _syncPTTSenderRegistration(): void {
+    const sender = this._microphoneTransceiver?.sender;
+    if (
+      this._registeredPTTCardID === this.pttCardID &&
+      this._registeredPTTSender === sender
+    ) {
+      return;
+    }
+
+    this._clearPTTSenderRegistration();
+
+    if (this.pttCardID && sender) {
+      registerPTTSender(this.pttCardID, sender);
+      this._registeredPTTCardID = this.pttCardID;
+      this._registeredPTTSender = sender;
+    }
+  }
+
   protected _prepareMicrophoneHotAttach(player: VideoRTC): void {
     const createOffer = player.createOffer.bind(player);
 
     player.createOffer = (pc: RTCPeerConnection) => {
+      // A new PeerConnection is a provider/network lifecycle event, not a PTT
+      // action. Move the PTT transport registration to the newly negotiated
+      // sender while keeping any already-acquired physical microphone track in
+      // the PersistentPTTManager.
+      this._clearPTTSenderRegistration();
       this._microphoneTransceiver = null;
 
       // Negotiate an outbound audio m-line up front without attaching a real
@@ -177,9 +218,11 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
           pc,
           player.microphoneStream,
         );
+        this._syncPTTSenderRegistration();
       } catch (e) {
         // Keep the original WebRTC offer working on browsers that cannot reserve
-        // the transceiver. A later microphone change will fall back to reconnect.
+        // the transceiver. Standalone PTT remains unavailable rather than
+        // reconnecting the player when pressed.
         errorToConsole(e as Error);
       }
 
@@ -193,6 +236,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
           pc,
           player.microphoneStream,
         );
+        this._syncPTTSenderRegistration();
       }
 
       return offer;
@@ -218,8 +262,9 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     this._microphoneTransceiver = transceiver;
 
     if (!transceiver) {
-      // Compatibility fallback: preserve the historical behavior when a browser
-      // or remote endpoint did not negotiate an outbound audio transceiver.
+      // This fallback belongs only to the original ACC microphone path. The CJ
+      // standalone PTT path never calls this method and therefore never causes a
+      // reconnect/renegotiation on PTT press.
       player.reconnect();
       return;
     }
@@ -230,6 +275,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
       // The player may have been replaced while replaceTrack() was pending.
       if (this._player === player) {
         this._microphoneTransceiver = null;
+        this._clearPTTSenderRegistration();
         player.reconnect();
       }
     });
@@ -269,6 +315,10 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
     if (changedProps.has('controls') && this._player) {
       this._player.setControls(this.controls);
+    }
+
+    if (changedProps.has('pttCardID')) {
+      this._syncPTTSenderRegistration();
     }
 
     if (

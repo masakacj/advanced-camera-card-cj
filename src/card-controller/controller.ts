@@ -31,6 +31,7 @@ import { MediaLoadedInfoManager } from './media-info-manager';
 import { MediaPlayerManager } from './media-player-manager';
 import { MessageManager } from './message-manager';
 import { MicrophoneManager } from './microphone-manager';
+import { PersistentPTTManager } from './persistent-ptt-manager';
 import { QueryStringManager } from './query-string-manager';
 import { StatusBarItemManager } from './status-bar-item-manager';
 import { StyleManager } from './style-manager';
@@ -121,6 +122,7 @@ export class CardController
   protected _mediaPlayerManager = new MediaPlayerManager(this);
   protected _messageManager = new MessageManager(this);
   protected _microphoneManager = new MicrophoneManager(this);
+  protected _persistentPTTManager = new PersistentPTTManager(this);
   protected _queryStringManager = new QueryStringManager(this);
   protected _statusBarItemManager = new StatusBarItemManager(this);
   protected _styleManager = new StyleManager(this);
@@ -248,6 +250,10 @@ export class CardController
     this._microphoneManager = new MicrophoneManager(this);
   }
 
+  public getPersistentPTTManager(): PersistentPTTManager {
+    return this._persistentPTTManager;
+  }
+
   public getQueryStringManager(): QueryStringManager {
     return this._queryStringManager;
   }
@@ -296,9 +302,11 @@ export class CardController
 
   public hostConnected(): void {
     this.getCardElementManager().elementConnected();
+    this.getPersistentPTTManager().initialize();
   }
 
   public hostDisconnected(): void {
+    this.getPersistentPTTManager().destroy();
     this.getCardElementManager().elementDisconnected();
   }
 }

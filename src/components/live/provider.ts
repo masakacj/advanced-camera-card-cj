@@ -252,7 +252,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
         return renderMessage({
           message: localize('error.live_camera_not_found'),
           type: 'error',
-          icon: 'mdi:camera',
+          icon: 'mdi:cctv-off',
           context: cameraConfig,
         });
       }
@@ -316,6 +316,7 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               .cameraEndpoints=${this.cameraEndpoints}
               .microphoneState=${this.microphoneState}
               .microphoneConfig=${this.liveConfig.microphone}
+              .pttCardID=${this.microphoneState ? this.cardWideConfig?.card_id : undefined}
               ?controls=${this.liveConfig.controls.builtin}
               @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
             >

@@ -37,7 +37,6 @@ card_id: front-door
 live:
   microphone:
     always_connected: false
-    disconnect_seconds: 10
 ```
 
 Then add the companion PTT card:
@@ -50,7 +49,13 @@ icon: mdi:microphone-off
 active_icon: mdi:microphone
 ```
 
-The PTT card does not create another camera player or another WebRTC video stream. It controls the microphone manager of the existing Advanced Camera Card target.
+The PTT card does not create another camera player or another WebRTC video stream. With the go2rtc provider, CJ negotiates an empty outbound audio transceiver when the existing video PeerConnection is first created, without requesting microphone access.
+
+On the first PTT press, the companion card requests the physical microphone once and attaches that audio track with `RTCRtpSender.replaceTrack()`. Releasing PTT only sets `track.enabled = false`; later presses set it back to `true`. The PeerConnection, video element, and received video track are not rebuilt or renegotiated by PTT.
+
+After the first PTT use, the muted microphone track is intentionally kept for the lifetime of the main card so later presses are immediate. When the main card leaves the DOM, CJ disables and stops the microphone track and detaches it from the sender. The standalone PTT fast path does not use `always_connected` or `disconnect_seconds`; those options continue to apply to the standard ACC microphone controls.
+
+For safety, PTT is also stopped on pointer cancellation/loss, button or window blur, document visibility changes, and when the companion PTT card is disconnected.
 
 ## Lazy camera expander
 
