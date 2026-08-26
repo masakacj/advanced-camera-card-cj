@@ -1,4 +1,5 @@
 // Companion PTT card: controls an existing ACC without creating another media pipeline.
+import './lazy-expander.js';
 import { CSSResultGroup, LitElement, TemplateResult, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './ha/types.js';

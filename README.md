@@ -52,6 +52,27 @@ active_icon: mdi:microphone
 
 The PTT card does not create another camera player or another WebRTC video stream. It controls the microphone manager of the existing Advanced Camera Card target.
 
+## Lazy camera expander
+
+Use the lazy expander when collapsed camera cards must not keep their WebRTC/go2rtc streams running in the background. Child cards are created only after the expander is opened and are removed from the DOM after it is closed.
+
+```yaml
+type: custom:advanced-camera-card-lazy-expander
+title: 显示其他监控
+cards:
+  - type: custom:advanced-camera-card
+    cameras:
+      - camera_entity: camera.living_room
+  - type: custom:advanced-camera-card
+    cameras:
+      - camera_entity: camera.garden
+  - type: custom:advanced-camera-card
+    cameras:
+      - camera_entity: camera.balcony
+```
+
+This is intended as a drop-in replacement for an expander whose collapsed state only hides child cards with CSS while leaving them mounted.
+
 ## Upstream features
 
 - Live viewing of multiple cameras.
