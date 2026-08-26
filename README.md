@@ -55,6 +55,8 @@ On the first PTT press, the companion card requests the physical microphone once
 
 After the first PTT use, the muted microphone track is intentionally kept for the lifetime of the main card so later presses are immediate. When the main card leaves the DOM, CJ disables and stops the microphone track and detaches it from the sender. The standalone PTT fast path does not use `always_connected` or `disconnect_seconds`; those options continue to apply to the standard ACC microphone controls.
 
+This persistent PTT fast path is the default behavior of the standalone CJ PTT card in versioned releases after the initial v1.0.0 baseline.
+
 For safety, PTT is also stopped on pointer cancellation/loss, button or window blur, document visibility changes, and when the companion PTT card is disconnected.
 
 ## Lazy camera expander
