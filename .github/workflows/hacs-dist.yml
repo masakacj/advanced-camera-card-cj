@@ -40,7 +40,14 @@ jobs:
         run: yarn run test
 
       - name: Build
-        run: yarn run build
+        shell: bash
+        run: |
+          # Rollup chunk filenames contain content hashes. The dist directory is
+          # committed in this fork for HACS, so it must be cleaned before every
+          # build or stale chunks from previous builds accumulate indefinitely.
+          # HACS downloads every JS file it finds in dist for dashboard plugins.
+          rm -rf dist
+          yarn run build
 
       - name: Commit formatted source and HACS distribution
         shell: bash
@@ -49,6 +56,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           # Stage any Prettier fixes first, then force-add the ignored dist output.
+          # `git add -A` also records removal of stale dist chunks deleted before
+          # the build, while the forced add makes sure the fresh ignored files are
+          # included in the distribution commit.
           git add -A
           git add -f -A dist
 
