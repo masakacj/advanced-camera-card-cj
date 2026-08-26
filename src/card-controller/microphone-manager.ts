@@ -31,12 +31,11 @@ export class MicrophoneManager {
   }
 
   public shouldConnectOnInitialization(): boolean {
-    return (
-      !!this._api.getConfigManager().getConfig()?.live.microphone?.always_connected &&
-      // If it won't be possible to connect the microphone at all, we do not
-      // block the initialization of the card (the microphone just won't work)
-      this.isSupported()
-    );
+    // Microphone access in this fork is intentionally user-initiated. The
+    // always_connected option still controls the lifetime of a stream after
+    // the user explicitly enables two-way audio, but it must never cause a
+    // microphone permission request or capture merely by opening the card.
+    return false;
   }
 
   public isSupported(): boolean {
@@ -69,6 +68,8 @@ export class MicrophoneManager {
   }
 
   public disconnect(): void {
+    this._timer.stop();
+    this._desireMute = true;
     this._stream?.getTracks().forEach((track) => track.stop());
 
     this._stream = undefined;

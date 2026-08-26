@@ -244,7 +244,7 @@ describe('MicrophoneManager', () => {
     expect(api.getCardElementManager().update).toBeCalledTimes(1);
   });
 
-  describe('should require initialization', async () => {
+  describe('should not require initialization', async () => {
     it('when configured and supported', async () => {
       const api = createCardAPI();
       const manager = new MicrophoneManager(api);
@@ -260,7 +260,7 @@ describe('MicrophoneManager', () => {
 
       await manager.connect();
 
-      expect(manager.shouldConnectOnInitialization()).toBeTruthy();
+      expect(manager.shouldConnectOnInitialization()).toBeFalsy();
     });
 
     it('when configured but not supported', async () => {
