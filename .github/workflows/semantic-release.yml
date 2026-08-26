@@ -1,15 +1,25 @@
 ---
 name: Semantic Release
 
-# Fork safety: keep the upstream semantic-release workflow available for
-# deliberate use, but never publish automatically from pushes to this fork.
+# Publish this fork as a normal versioned HACS repository. Source changes on
+# main are evaluated by semantic-release; commits that do not produce a new
+# semantic version simply exit without publishing anything.
 on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'dist/**'
   workflow_dispatch:
 
 permissions:
-  contents: write # To be able to publish a GitHub release
-  issues: write # To be able to comment on released issues
-  pull-requests: write # To be able to comment on released pull requests
+  contents: write # Create tags/releases and upload release assets
+  issues: write # semantic-release issue comments
+  pull-requests: write # semantic-release pull request comments
+
+concurrency:
+  group: semantic-release-main
+  cancel-in-progress: false
 
 jobs:
   get-next-version:
@@ -41,15 +51,26 @@ jobs:
           persist-credentials: false
       - uses: volta-cli/action@v4
       - run: yarn install --immutable
-      - run: yarn run build
+
+      # Rollup chunk names contain hashes. Always build a release from an empty
+      # dist directory so old chunks can never leak into HACS release assets.
+      - name: Clean distribution
+        run: rm -rf dist
+
+      - name: Build release assets
+        run: yarn run build
         env:
           RELEASE_VERSION: ${{ needs.get-next-version.outputs.new-release-version }}
           RELEASE_TAG: ${{ needs.get-next-version.outputs.new-release-git-tag }}
-      - uses: thedoctor0/zip-release@0.7.6
+
+      - name: Create ZIP distribution
+        uses: thedoctor0/zip-release@0.7.6
         with:
           type: zip
           path: dist
           filename: advanced-camera-card.zip
-      - run: npx semantic-release
+
+      - name: Publish GitHub release
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
