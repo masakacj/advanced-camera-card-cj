@@ -4,9 +4,14 @@ import '../src/lazy-expander';
 
 // @vitest-environment jsdom
 
+type LazyExpanderConfig = LovelaceCardConfig & {
+  cards: LovelaceCardConfig[];
+  expanded?: boolean;
+};
+
 type LazyExpanderElement = HTMLElement & {
   hass?: HomeAssistant;
-  setConfig(config: LovelaceCardConfig & { cards: LovelaceCardConfig[] }): void;
+  setConfig(config: LazyExpanderConfig): void;
   updateComplete: Promise<boolean>;
 };
 
@@ -74,5 +79,27 @@ describe('AdvancedCameraCardLazyExpander', () => {
     await element.updateComplete;
 
     expect(child?.isConnected).toBe(false);
+  });
+
+  it('disconnects old children when config changes', async () => {
+    const element = await createExpander();
+    const button = element.shadowRoot?.querySelector('button');
+
+    button?.click();
+    await element.updateComplete;
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const oldChild = element.shadowRoot?.querySelector('.children > div');
+    expect(oldChild?.isConnected).toBe(true);
+
+    element.setConfig({
+      type: 'custom:advanced-camera-card-lazy-expander',
+      expanded: false,
+      cards: [{ type: 'custom:advanced-camera-card' }],
+    });
+    await element.updateComplete;
+
+    expect(oldChild?.isConnected).toBe(false);
   });
 });
