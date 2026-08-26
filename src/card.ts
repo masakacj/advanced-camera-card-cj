@@ -31,6 +31,7 @@ import { RawAdvancedCameraCardConfig } from './config/types.js';
 import { REPO_URL } from './const.js';
 import { HomeAssistant, LovelaceCardEditor } from './ha/types.js';
 import { localize } from './localize/localize.js';
+import './ptt.js';
 import cardStyle from './scss/card.scss';
 import { MediaLoadedInfo, Message } from './types.js';
 import { hasAction } from './utils/action.js';
