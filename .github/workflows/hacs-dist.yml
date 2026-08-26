@@ -59,10 +59,10 @@ jobs:
             git push
           fi
 
-      # Validate after publishing. Once bootstrapped, the triggering main commit
-      # already contains a valid dist/ tree and HACS can validate that branch.
+      # This is a personal fork/custom repository, so public-listing metadata
+      # such as GitHub Topics and an enabled Issues tab are intentionally optional.
       - name: HACS validation
         uses: hacs/action@22.5.0
         with:
           category: plugin
-          ignore: hacs
+          ignore: hacs topics issues
