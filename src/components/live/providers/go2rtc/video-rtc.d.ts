@@ -28,11 +28,12 @@ export class VideoRTC extends HTMLElement {
   onclose(): void;
   onopen(): void;
   onwebrtc(): void;
+  createOffer(pc: RTCPeerConnection): Promise<RTCSessionDescriptionInit>;
   onmessage: Record<string, (msg: { type: string; value: string }) => void>;
 
   // Custom methods/members.
   mediaPlayerController: MediaPlayerController | null;
   microphoneStream: MediaStream | null;
-  reconnect();
+  reconnect(): void;
   setControls(controls: boolean): void;
 }
