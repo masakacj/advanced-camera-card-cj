@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdvancedCameraCardPTT } from '../src/ptt';
 import {
@@ -8,7 +9,6 @@ import {
 
 const CARD_ID = 'front-door';
 
-// @vitest-environment jsdom
 describe('AdvancedCameraCardPTT', () => {
   let card: AdvancedCameraCardPTT;
   let target: AdvancedCameraCardPTTTransportTarget;
@@ -31,7 +31,10 @@ describe('AdvancedCameraCardPTT', () => {
     };
     registerPTTTarget(CARD_ID, target);
 
-    card = document.createElement('advanced-camera-card-ptt');
+    // Instantiate the exported class directly so the import is a runtime value
+    // (and cannot be elided as a type-only import before the custom element is
+    // registered by its decorator).
+    card = new AdvancedCameraCardPTT();
     card.setConfig({
       type: 'custom:advanced-camera-card-ptt',
       target: CARD_ID,
@@ -70,7 +73,7 @@ describe('AdvancedCameraCardPTT', () => {
     return button;
   };
 
-  it.each(['pointerup', 'pointercancel', 'lostpointercapture']) (
+  it.each(['pointerup', 'pointercancel', 'lostpointercapture'])(
     'stops talking on %s',
     async (eventName) => {
       const button = await press();
