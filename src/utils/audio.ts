@@ -68,13 +68,12 @@ export const hasAudio = (
  * @returns True if the connection has an audio transceiver configured to send.
  */
 export const has2WayAudio = (pc: RTCPeerConnection | null): boolean => {
-  return !!pc
-    ?.getTransceivers()
-    .some(
-      (tr) =>
-        tr.sender.track?.kind === 'audio' &&
-        (tr.direction === 'sendonly' || tr.direction === 'sendrecv'),
-    );
+  return !!pc?.getTransceivers().some((tr) => {
+    const direction = tr.currentDirection ?? tr.direction;
+    const kind = tr.sender.track?.kind ?? tr.receiver.track?.kind;
+
+    return kind === 'audio' && (direction === 'sendonly' || direction === 'sendrecv');
+  });
 };
 
 export type AudioTracksMuteStateCleanup = (() => void) | null;
