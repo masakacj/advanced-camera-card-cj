@@ -79,12 +79,7 @@ export class PersistentPTTManager implements AdvancedCameraCardPTTTransportTarge
   }
 
   public isPTTActive(): boolean {
-    return !!(
-      this._desiredActive &&
-      this._sender &&
-      this._track &&
-      this._track.enabled
-    );
+    return !!(this._desiredActive && this._sender && this._track && this._track.enabled);
   }
 
   public bindSender(sender: RTCRtpSender): void {
@@ -225,11 +220,7 @@ export class PersistentPTTManager implements AdvancedCameraCardPTTTransportTarge
     // completed and the initiating PTT press is still active.
     track.enabled = false;
 
-    if (
-      this._destroyed ||
-      generation !== this._generation ||
-      this._sender !== sender
-    ) {
+    if (this._destroyed || generation !== this._generation || this._sender !== sender) {
       stream.getTracks().forEach((streamTrack) => streamTrack.stop());
       return;
     }
@@ -244,11 +235,7 @@ export class PersistentPTTManager implements AdvancedCameraCardPTTTransportTarge
       return;
     }
 
-    if (
-      this._destroyed ||
-      generation !== this._generation ||
-      this._sender !== sender
-    ) {
+    if (this._destroyed || generation !== this._generation || this._sender !== sender) {
       track.enabled = false;
       stream.getTracks().forEach((streamTrack) => streamTrack.stop());
       void sender.replaceTrack(null).catch(() => undefined);

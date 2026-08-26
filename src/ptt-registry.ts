@@ -110,9 +110,8 @@ export const notifyPTTTargetStateChanged = (
   }
 };
 
-export const getPTTTarget = (
-  cardID: string,
-): AdvancedCameraCardPTTTarget | undefined => getTransportTarget(cardID);
+export const getPTTTarget = (cardID: string): AdvancedCameraCardPTTTarget | undefined =>
+  getTransportTarget(cardID);
 
 export const subscribePTTTargets = (listener: () => void): (() => void) => {
   listeners.add(listener);

@@ -71,12 +71,10 @@ describe('PersistentPTTManager', () => {
     const api = createCardAPI();
     element = document.createElement('div');
     document.body.append(element);
-    api.getCardElementManager().getElement.mockReturnValue(
-      element as unknown as CardHTMLElement,
-    );
-    api.getConfigManager().getConfig.mockReturnValue(
-      createConfig({ card_id: CARD_ID }),
-    );
+    api
+      .getCardElementManager()
+      .getElement.mockReturnValue(element as unknown as CardHTMLElement);
+    api.getConfigManager().getConfig.mockReturnValue(createConfig({ card_id: CARD_ID }));
 
     manager = new PersistentPTTManager(api);
     manager.initialize();

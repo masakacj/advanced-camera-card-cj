@@ -316,7 +316,9 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
               .cameraEndpoints=${this.cameraEndpoints}
               .microphoneState=${this.microphoneState}
               .microphoneConfig=${this.liveConfig.microphone}
-              .pttCardID=${this.microphoneState ? this.cardWideConfig?.card_id : undefined}
+              .pttCardID=${this.microphoneState
+                ? this.cardWideConfig?.card_id
+                : undefined}
               ?controls=${this.liveConfig.controls.builtin}
               @advanced-camera-card:live:error=${() => this._providerErrorHandler()}
             >

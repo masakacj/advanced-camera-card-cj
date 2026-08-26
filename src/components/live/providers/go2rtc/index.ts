@@ -17,10 +17,7 @@ import { homeAssistantSignPath } from '../../../../ha/sign-path.js';
 import { HomeAssistant } from '../../../../ha/types.js';
 import { createProxiedEndpointIfNecessary } from '../../../../ha/web-proxy.js';
 import { localize } from '../../../../localize/localize.js';
-import {
-  registerPTTSender,
-  unregisterPTTSender,
-} from '../../../../ptt-registry.js';
+import { registerPTTSender, unregisterPTTSender } from '../../../../ptt-registry.js';
 import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
 import { MediaPlayer, MediaPlayerController, Message } from '../../../../types.js';
 import { errorToConsole } from '../../../../utils/basic.js';
