@@ -94,12 +94,6 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     return;
   }
 
-  protected _getActiveMicrophoneStream(): MediaStream | null {
-    return this.microphoneState?.connected && !this.microphoneState.muted
-      ? (this.microphoneState.stream ?? null)
-      : null;
-  }
-
   protected async _getPlayerSource(): Promise<string | null> {
     const cameraConfig = this.camera?.getConfig();
     const proxyConfig = this.camera?.getProxyConfig();
@@ -169,7 +163,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
     this._player = new VideoRTC();
     this._player.mediaPlayerController = this._mediaPlayerController;
-    this._player.microphoneStream = this._getActiveMicrophoneStream();
+    this._player.microphoneStream = this.microphoneState?.stream ?? null;
     this._player.src = src;
     this._player.visibilityCheck = false;
     this._player.setControls(this.controls);
@@ -195,15 +189,16 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
       this._player.setControls(this.controls);
     }
 
-    if (this._player && changedProps.has('microphoneState')) {
-      const microphoneStream = this._getActiveMicrophoneStream();
-      if (this._player.microphoneStream !== microphoneStream) {
-        this._player.microphoneStream = microphoneStream;
+    if (
+      this._player &&
+      changedProps.has('microphoneState') &&
+      this._player.microphoneStream !== (this.microphoneState?.stream ?? null)
+    ) {
+      this._player.microphoneStream = this.microphoneState?.stream ?? null;
 
-        // Need to force a reconnect if the microphone stream changes since
-        // WebRTC cannot introduce or remove a stream after the offer is made.
-        this._player.reconnect();
-      }
+      // Need to force a reconnect if the microphone stream changes since
+      // WebRTC cannot introduce a new stream after the offer is already made.
+      this._player.reconnect();
     }
   }
 

@@ -12,7 +12,6 @@ import { guard } from 'lit/directives/guard.js';
 import { createRef, Ref, ref } from 'lit/directives/ref.js';
 import { Camera } from '../../camera-manager/camera.js';
 import { CameraEndpoints } from '../../camera-manager/types.js';
-import { dispatchActionExecutionRequest } from '../../card-controller/actions/utils/execution-request.js';
 import { MicrophoneState } from '../../card-controller/types.js';
 import { LazyLoadController } from '../../components-lib/lazy-load-controller.js';
 import { dispatchLiveErrorEvent } from '../../components-lib/live/utils/dispatch-live-error.js';
@@ -29,7 +28,6 @@ import {
   MediaPlayerController,
   MediaPlayerElement,
 } from '../../types.js';
-import { createGeneralAction } from '../../utils/action.js';
 import { getResolvedLiveProvider } from '../../utils/live-provider.js';
 import { dispatchMediaUnloadedEvent } from '../../utils/media-info.js';
 import '../icon.js';
@@ -132,75 +130,6 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
 
   protected _providerErrorHandler(): void {
     this._hasProviderError = true;
-  }
-
-  protected _hasTwoWayAudio(): boolean {
-    return !!this.camera?.getCapabilities()?.has('2-way-audio');
-  }
-
-  protected _isMicrophoneAvailable(): boolean {
-    return (
-      this._hasTwoWayAudio() &&
-      typeof navigator !== 'undefined' &&
-      !!navigator.mediaDevices?.getUserMedia &&
-      !this.microphoneState?.forbidden
-    );
-  }
-
-  protected _isMicrophoneActive(): boolean {
-    return !!(
-      this.microphoneState?.connected &&
-      !this.microphoneState.muted &&
-      this.microphoneState.stream
-    );
-  }
-
-  protected _toggleMicrophone(): void {
-    dispatchActionExecutionRequest(this, {
-      actions: createGeneralAction(
-        this._isMicrophoneActive()
-          ? 'microphone_disconnect'
-          : 'microphone_unmute',
-      ),
-    });
-  }
-
-  protected _renderMicrophoneButton(): TemplateResult | void {
-    if (!this._hasTwoWayAudio()) {
-      return;
-    }
-
-    const active = this._isMicrophoneActive();
-    const available = this._isMicrophoneAvailable();
-    const label = localize('config.menu.buttons.microphone');
-
-    return html`<ha-icon-button
-      class=${classMap({
-        'microphone-button': true,
-        active,
-      })}
-      .label=${label}
-      title=${label}
-      aria-pressed=${active ? 'true' : 'false'}
-      ?disabled=${!available}
-      @click=${(ev: Event) => {
-        ev.stopPropagation();
-        if (available) {
-          this._toggleMicrophone();
-        }
-      }}
-    >
-      <advanced-camera-card-icon
-        .hass=${this.hass}
-        .icon=${{
-          icon: !available
-            ? 'mdi:microphone-message-off'
-            : active
-              ? 'mdi:microphone'
-              : 'mdi:microphone-off',
-        }}
-      ></advanced-camera-card-icon>
-    </ha-icon-button>`;
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -416,10 +345,8 @@ export class AdvancedCameraCardLiveProvider extends LitElement implements MediaP
                 </advanced-camera-card-live-jsmpeg>`
               : html``}
     `)}
-    ${this._renderMicrophoneButton()}
     ${showLoadingIcon
       ? html`<advanced-camera-card-icon
-          class="loading-icon"
           title=${localize('error.awaiting_live')}
           .icon=${{ icon: 'mdi:progress-helper' }}
           @click=${() => {

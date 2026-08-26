@@ -8,6 +8,7 @@ import { MenuConfig } from '../config/schema/menu.js';
 import { getEntityTitle } from '../ha/get-entity-title.js';
 import { EntityRegistryManager } from '../ha/registry/entity/types.js';
 import { HomeAssistant } from '../ha/types.js';
+import '../ptt.js';
 import menuStyle from '../scss/menu.scss';
 import { hasAction } from '../utils/action.js';
 import './icon.js';
