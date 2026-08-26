@@ -5,8 +5,7 @@ import {
   reserveMicrophoneTransceiver,
 } from '../../../../../src/components/live/providers/go2rtc/microphone-transceiver';
 
-const createAudioTrack = (): MediaStreamTrack =>
-  ({ kind: 'audio' }) as MediaStreamTrack;
+const createAudioTrack = (): MediaStreamTrack => ({ kind: 'audio' }) as MediaStreamTrack;
 
 const createStream = (track: MediaStreamTrack): MediaStream =>
   ({ getAudioTracks: () => [track] }) as unknown as MediaStream;

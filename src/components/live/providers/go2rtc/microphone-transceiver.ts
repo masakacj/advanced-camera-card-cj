@@ -17,10 +17,7 @@ export const findMicrophoneTransceiver = (
 
   return (
     pc.getTransceivers().find((transceiver) => {
-      if (
-        transceiver.direction !== 'sendonly' &&
-        transceiver.direction !== 'sendrecv'
-      ) {
+      if (transceiver.direction !== 'sendonly' && transceiver.direction !== 'sendrecv') {
         return false;
       }
 
