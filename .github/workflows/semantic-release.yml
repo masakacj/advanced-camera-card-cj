@@ -1,11 +1,9 @@
 ---
 name: Semantic Release
 
+# Fork safety: keep the upstream semantic-release workflow available for
+# deliberate use, but never publish automatically from pushes to this fork.
 on:
-  push:
-    branches:
-      - main
-      - next
   workflow_dispatch:
 
 permissions:
