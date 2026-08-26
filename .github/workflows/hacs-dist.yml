@@ -59,6 +59,8 @@ jobs:
             git push
           fi
 
+      # Validate after publishing. Once bootstrapped, the triggering main commit
+      # already contains a valid dist/ tree and HACS can validate that branch.
       - name: HACS validation
         uses: hacs/action@22.5.0
         with:
