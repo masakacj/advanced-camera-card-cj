@@ -2,19 +2,57 @@
 <!-- markdownlint-disable fenced-code-language -->
 <!-- markdownlint-disable no-inline-html -->
 
-[![GitHub Release](https://img.shields.io/github/release/dermotduffy/advanced-camera-card.svg?style=flat-square)](https://github.com/dermotduffy/advanced-camera-card/releases)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/dermotduffy/advanced-camera-card/build.yml?style=flat-square)](https://github.com/dermotduffy/advanced-camera-card/actions/workflows/build.yml)
-[![License](https://img.shields.io/github/license/dermotduffy/advanced-camera-card.svg?style=flat-square)](LICENSE)
-[![HACS](https://img.shields.io/badge/HACS-default-orange.svg?style=flat-square)](https://hacs.xyz)
-[![Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86&style=flat-square)](https://github.com/sponsors/dermotduffy)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/masakacj/advanced-camera-card-cj/hacs-dist.yml?branch=main&style=flat-square)](https://github.com/masakacj/advanced-camera-card-cj/actions/workflows/hacs-dist.yml)
+[![License](https://img.shields.io/github/license/masakacj/advanced-camera-card-cj.svg?style=flat-square)](LICENSE)
+[![HACS Custom](https://img.shields.io/badge/HACS-custom-orange.svg?style=flat-square)](https://hacs.xyz)
 
 <img src="https://raw.githubusercontent.com/dermotduffy/advanced-camera-card/main/docs/images/advanced-camera-card.png" alt="Advanced Camera Card" width="500px">
 
-# Advanced Camera Card
+# Advanced Camera Card CJ
 
-Formerly known as: `Frigate Card`
+Personal fork of [Advanced Camera Card](https://github.com/dermotduffy/advanced-camera-card) for Home Assistant.
 
-A comprehensive camera card for Home Assistant.
+This fork keeps the upstream card type and configuration compatibility, while adding custom changes used in this repository. Current additions include a standalone push-to-talk card for two-way audio.
+
+## Install with HACS
+
+Add this repository as a HACS custom repository with category **Dashboard**:
+
+`https://github.com/masakacj/advanced-camera-card-cj`
+
+The main card type remains unchanged:
+
+```yaml
+ type: custom:advanced-camera-card
+```
+
+## Standalone push-to-talk card
+
+Give the main Advanced Camera Card a stable `card_id`:
+
+```yaml
+ type: custom:advanced-camera-card
+ card_id: front-door
+
+ live:
+   microphone:
+     always_connected: false
+     disconnect_seconds: 10
+```
+
+Then add the companion PTT card:
+
+```yaml
+ type: custom:advanced-camera-card-ptt
+ target: front-door
+ name: 对讲
+ icon: mdi:microphone-off
+ active_icon: mdi:microphone
+```
+
+The PTT card does not create another camera player or another WebRTC video stream. It controls the microphone manager of the existing Advanced Camera Card target.
+
+## Upstream features
 
 - Live viewing of multiple cameras.
 - Clips and snapshot browsing via mini-gallery.
@@ -28,4 +66,4 @@ A comprehensive camera card for Home Assistant.
 - Full [Picture Elements](https://www.home-assistant.io/lovelace/picture-elements/) support.
 - Theme friendly.
 
-See [full documentation](https://dermotduffy.github.io/advanced-camera-card).
+See the [upstream documentation](https://card.camera) for the standard Advanced Camera Card configuration and features.

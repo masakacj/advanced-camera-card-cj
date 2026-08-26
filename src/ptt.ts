@@ -38,8 +38,8 @@ if (typeof window !== 'undefined') {
   ) {
     customCardsWindow.customCards.push({
       type: 'advanced-camera-card-ptt',
-      name: 'Advanced Camera Card PTT',
-      description: 'Push-to-talk control for an existing Advanced Camera Card',
+      name: 'Advanced Camera Card CJ PTT',
+      description: 'Push-to-talk control for an existing Advanced Camera Card CJ',
       preview: true,
     });
   }
@@ -58,7 +58,7 @@ export class AdvancedCameraCardPTT extends LitElement {
 
   public setConfig(config: AdvancedCameraCardPTTConfig): void {
     if (!config?.target || typeof config.target !== 'string') {
-      throw new Error('Advanced Camera Card PTT requires a target card_id');
+      throw new Error('Advanced Camera Card CJ PTT requires a target card_id');
     }
 
     this._config = config;

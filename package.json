@@ -1,7 +1,7 @@
 {
   "name": "advanced-camera-card",
   "version": "0.0.0-dev",
-  "description": "Advanced Camera Card for Home Assistant",
+  "description": "Advanced Camera Card CJ for Home Assistant",
   "keywords": [
     "advanced",
     "camera",
@@ -14,7 +14,7 @@
   ],
   "type": "module",
   "module": "advanced-camera-card.js",
-  "repository": "github:dermotduffy/advanced-camera-card",
+  "repository": "github:masakacj/advanced-camera-card-cj",
   "author": "Dermot Duffy <dermot.duffy@gmail.com>",
   "license": "MIT",
   "dependencies": {
@@ -173,9 +173,9 @@
             "ci"
           ],
           "assignees": [
-            "dermotduffy"
+            "masakacj"
           ],
-          "successComment": ":tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nSee: [GitHub release](https://github.com/dermotduffy/advanced-camera-card/releases/tag/${nextRelease.gitTag})",
+          "successComment": ":tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nSee: [GitHub release](https://github.com/masakacj/advanced-camera-card-cj/releases/tag/${nextRelease.gitTag})",
           "releaseNameTemplate": "v${nextRelease.version}"
         }
       ]
