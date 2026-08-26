@@ -21,6 +21,11 @@ import liveGo2RTCStyle from '../../../../scss/live-go2rtc.scss';
 import { MediaPlayer, MediaPlayerController, Message } from '../../../../types.js';
 import { errorToConsole } from '../../../../utils/basic.js';
 import { renderMessage } from '../../../message.js';
+import {
+  findMicrophoneTransceiver,
+  replaceMicrophoneTrack,
+  reserveMicrophoneTransceiver,
+} from './microphone-transceiver.js';
 import { VideoRTC } from './video-rtc.js';
 
 customElements.define('advanced-camera-card-live-go2rtc-player', VideoRTC);
@@ -56,6 +61,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
   protected _message: Message | null = null;
 
   protected _player?: VideoRTC;
+  protected _microphoneTransceiver: RTCRtpTransceiver | null = null;
 
   protected _mediaPlayerController = new VideoMediaPlayerController(
     this,
@@ -69,6 +75,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
 
   disconnectedCallback(): void {
     this._player = undefined;
+    this._microphoneTransceiver = null;
     this._message = null;
     super.disconnectedCallback();
   }
@@ -155,24 +162,99 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
     return result;
   }
 
+  protected _prepareMicrophoneHotAttach(player: VideoRTC): void {
+    const createOffer = player.createOffer.bind(player);
+
+    player.createOffer = (pc: RTCPeerConnection) => {
+      this._microphoneTransceiver = null;
+
+      // Negotiate an outbound audio m-line up front without attaching a real
+      // microphone track. This does not request microphone permission, but it
+      // lets a later user-initiated PTT press use RTCRtpSender.replaceTrack()
+      // instead of rebuilding the whole WebRTC connection/video element.
+      try {
+        this._microphoneTransceiver = reserveMicrophoneTransceiver(
+          pc,
+          player.microphoneStream,
+        );
+      } catch (e) {
+        // Keep the original WebRTC offer working on browsers that cannot reserve
+        // the transceiver. A later microphone change will fall back to reconnect.
+        errorToConsole(e as Error);
+      }
+
+      const offer = createOffer(pc);
+
+      // createOffer() synchronously adds any real microphone track before its
+      // first await, so capture that transceiver immediately when a microphone
+      // was already connected before initial negotiation.
+      if (!this._microphoneTransceiver) {
+        this._microphoneTransceiver = findMicrophoneTransceiver(
+          pc,
+          player.microphoneStream,
+        );
+      }
+
+      return offer;
+    };
+  }
+
+  protected _setMicrophoneStream(stream: MediaStream | null): void {
+    const player = this._player;
+    if (!player) {
+      return;
+    }
+
+    player.microphoneStream = stream;
+
+    // If WebRTC negotiation has not started yet, createOffer() will pick up the
+    // latest microphone stream when it does start.
+    if (!player.pc) {
+      return;
+    }
+
+    const transceiver =
+      this._microphoneTransceiver ?? findMicrophoneTransceiver(player.pc, null);
+    this._microphoneTransceiver = transceiver;
+
+    if (!transceiver) {
+      // Compatibility fallback: preserve the historical behavior when a browser
+      // or remote endpoint did not negotiate an outbound audio transceiver.
+      player.reconnect();
+      return;
+    }
+
+    void replaceMicrophoneTrack(transceiver, stream).catch((e: unknown) => {
+      errorToConsole(e as Error);
+
+      // The player may have been replaced while replaceTrack() was pending.
+      if (this._player === player) {
+        this._microphoneTransceiver = null;
+        player.reconnect();
+      }
+    });
+  }
+
   protected async _createPlayer(): Promise<void> {
     const src = await this._getPlayerSource();
     if (!src) {
       return;
     }
 
-    this._player = new VideoRTC();
-    this._player.mediaPlayerController = this._mediaPlayerController;
-    this._player.microphoneStream = this.microphoneState?.stream ?? null;
-    this._player.src = src;
-    this._player.visibilityCheck = false;
-    this._player.setControls(this.controls);
+    const player = new VideoRTC();
+    player.mediaPlayerController = this._mediaPlayerController;
+    player.microphoneStream = this.microphoneState?.stream ?? null;
+    this._prepareMicrophoneHotAttach(player);
+    player.src = src;
+    player.visibilityCheck = false;
+    player.setControls(this.controls);
 
     const cameraConfig = this.camera?.getConfig();
     if (cameraConfig?.go2rtc?.modes && cameraConfig.go2rtc.modes.length) {
-      this._player.mode = cameraConfig.go2rtc.modes.join(',');
+      player.mode = cameraConfig.go2rtc.modes.join(',');
     }
 
+    this._player = player;
     this.requestUpdate();
   }
 
@@ -194,11 +276,7 @@ export class AdvancedCameraCardGo2RTC extends LitElement implements MediaPlayer 
       changedProps.has('microphoneState') &&
       this._player.microphoneStream !== (this.microphoneState?.stream ?? null)
     ) {
-      this._player.microphoneStream = this.microphoneState?.stream ?? null;
-
-      // Need to force a reconnect if the microphone stream changes since
-      // WebRTC cannot introduce a new stream after the offer is already made.
-      this._player.reconnect();
+      this._setMicrophoneStream(this.microphoneState?.stream ?? null);
     }
   }
 
