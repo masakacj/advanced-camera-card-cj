@@ -70,9 +70,11 @@ export const hasAudio = (
 export const has2WayAudio = (pc: RTCPeerConnection | null): boolean => {
   return !!pc?.getTransceivers().some((tr) => {
     const direction = tr.currentDirection ?? tr.direction;
-    const kind = tr.sender.track?.kind ?? tr.receiver.track?.kind;
+    const kind = tr.sender.track?.kind ?? tr.receiver?.track?.kind;
 
-    return kind === 'audio' && (direction === 'sendonly' || direction === 'sendrecv');
+    return (
+      kind === 'audio' && (direction === 'sendonly' || direction === 'sendrecv')
+    );
   });
 };
 
