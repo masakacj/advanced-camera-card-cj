@@ -136,11 +136,7 @@ export class AdvancedCameraCardLazyExpander extends LitElement {
     const container = this._childrenContainer;
     const helpers = await haWindow.loadCardHelpers();
 
-    if (
-      epoch !== this._mountEpoch ||
-      !this._renderChildren ||
-      !container.isConnected
-    ) {
+    if (epoch !== this._mountEpoch || !this._renderChildren || !container.isConnected) {
       return;
     }
 
