@@ -1,0 +1,64 @@
+---
+name: Build HACS Dist
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'dist/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hacs-dist-main
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and publish dist
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node and Yarn
+        uses: volta-cli/action@v4
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Check formatting
+        run: yarn run format-check
+
+      - name: Test
+        run: yarn run test
+
+      - name: Build
+        run: yarn run build
+
+      - name: HACS validation
+        uses: hacs/action@22.5.0
+        with:
+          category: plugin
+          ignore: hacs
+
+      - name: Commit HACS distribution
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f -A dist
+
+          if git diff --cached --quiet; then
+            echo "dist is already up to date"
+            exit 0
+          fi
+
+          git commit -m "build: update HACS distribution [skip ci]"
+          git push
