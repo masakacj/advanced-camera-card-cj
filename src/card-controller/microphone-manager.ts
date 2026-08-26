@@ -29,13 +29,16 @@ export class MicrophoneManager {
   }
 
   public initialize(): void {
-    this.refreshPTTRegistration();
+    this.refreshPTTRegistration(true);
     this._setState();
   }
 
-  public refreshPTTRegistration(): void {
+  public refreshPTTRegistration(force = false): void {
     const cardID = this._api.getConfigManager().getConfig()?.card_id;
     if (cardID === this._pttCardID) {
+      if (force && cardID) {
+        registerPTTTarget(cardID, this);
+      }
       return;
     }
 
@@ -50,7 +53,10 @@ export class MicrophoneManager {
   }
 
   public isAvailable(): boolean {
-    return this._api.getCardElementManager().getElement().isConnected;
+    return (
+      this._api.getCardElementManager().getElement().isConnected &&
+      this._api.getConfigManager().getConfig()?.card_id === this._pttCardID
+    );
   }
 
   public shouldConnectOnInitialization(): boolean {

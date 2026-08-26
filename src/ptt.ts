@@ -1,8 +1,11 @@
 import { CSSResultGroup, LitElement, TemplateResult, css, html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { REPO_URL } from './const.js';
 import { HomeAssistant } from './ha/types.js';
-import { getPTTTarget, subscribePTTTargets } from './ptt-registry.js';
+import {
+  AdvancedCameraCardPTTTarget,
+  getPTTTarget,
+  subscribePTTTargets,
+} from './ptt-registry.js';
 
 interface AdvancedCameraCardPTTConfig {
   type: string;
@@ -17,7 +20,6 @@ interface CustomCardMetadata {
   name: string;
   description: string;
   preview?: boolean;
-  documentationURL?: string;
 }
 
 type CustomCardsWindow = Window & {
@@ -38,7 +40,6 @@ if (typeof window !== 'undefined') {
       name: 'Advanced Camera Card PTT',
       description: 'Push-to-talk control for an existing Advanced Camera Card',
       preview: true,
-      documentationURL: REPO_URL,
     });
   }
 }
@@ -79,7 +80,7 @@ export class AdvancedCameraCardPTT extends LitElement {
     super.disconnectedCallback();
   }
 
-  protected _getAvailableTarget() {
+  protected _getAvailableTarget(): AdvancedCameraCardPTTTarget | undefined {
     if (!this._config) {
       return undefined;
     }
