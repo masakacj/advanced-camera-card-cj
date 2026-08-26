@@ -68,10 +68,12 @@ export class AdvancedCameraCardLazyExpander extends LitElement {
       throw new Error('Advanced Camera Card CJ Lazy Expander requires cards');
     }
 
+    this._cancelCollapseTimer();
+    this._mountEpoch++;
+    this._clearChildren();
     this._config = config;
     this._expanded = config.expanded ?? false;
     this._renderChildren = this._expanded;
-    this._mountEpoch++;
     this.requestUpdate();
   }
 
