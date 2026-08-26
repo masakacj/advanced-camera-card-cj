@@ -1,4 +1,3 @@
-import { registerPTTTarget, unregisterPTTTarget } from '../ptt-registry';
 import { errorToConsole } from '../utils/basic';
 import { Timer } from '../utils/timer';
 import { CardMicrophoneAPI, MicrophoneState } from './types';
@@ -7,7 +6,6 @@ export class MicrophoneManager {
   protected _api: CardMicrophoneAPI;
   protected _stream?: MediaStream | null;
   protected _timer = new Timer();
-  protected _pttCardID?: string;
 
   protected _state: MicrophoneState = {
     connected: false,
@@ -29,34 +27,7 @@ export class MicrophoneManager {
   }
 
   public initialize(): void {
-    this.refreshPTTRegistration(true);
     this._setState();
-  }
-
-  public refreshPTTRegistration(force = false): void {
-    const cardID = this._api.getConfigManager().getConfig()?.card_id;
-    if (cardID === this._pttCardID) {
-      if (force && cardID) {
-        registerPTTTarget(cardID, this);
-      }
-      return;
-    }
-
-    if (this._pttCardID) {
-      unregisterPTTTarget(this._pttCardID, this);
-    }
-
-    this._pttCardID = cardID;
-    if (cardID) {
-      registerPTTTarget(cardID, this);
-    }
-  }
-
-  public isAvailable(): boolean {
-    return (
-      this._api.getCardElementManager().getElement().isConnected &&
-      this._api.getConfigManager().getConfig()?.card_id === this._pttCardID
-    );
   }
 
   public shouldConnectOnInitialization(): boolean {
@@ -176,7 +147,6 @@ export class MicrophoneManager {
   }
 
   protected _setState(): void {
-    this.refreshPTTRegistration();
     this._state = {
       stream: this._stream,
       connected: this.isConnected(),
