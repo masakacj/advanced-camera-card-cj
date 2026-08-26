@@ -57,6 +57,13 @@ export class AdvancedCameraCardPTT extends LitElement {
   protected _config?: AdvancedCameraCardPTTConfig;
   protected _unsubscribeTargets?: () => void;
 
+  protected _handleWindowBlur = (): void => this._stopTalking();
+  protected _handleVisibilityChange = (): void => {
+    if (document.hidden) {
+      this._stopTalking();
+    }
+  };
+
   public setConfig(config: AdvancedCameraCardPTTConfig): void {
     if (!config?.target || typeof config.target !== 'string') {
       throw new Error('Advanced Camera Card CJ PTT requires a target card_id');
@@ -73,10 +80,16 @@ export class AdvancedCameraCardPTT extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
     this._unsubscribeTargets = subscribePTTTargets(() => this.requestUpdate());
+    window.addEventListener('blur', this._handleWindowBlur);
+    document.addEventListener('visibilitychange', this._handleVisibilityChange);
   }
 
   public disconnectedCallback(): void {
+    // A PTT control disappearing must always fail closed, even if the browser
+    // never delivered pointerup (common when an iOS app is backgrounded).
     this._stopTalking();
+    window.removeEventListener('blur', this._handleWindowBlur);
+    document.removeEventListener('visibilitychange', this._handleVisibilityChange);
     this._unsubscribeTargets?.();
     this._unsubscribeTargets = undefined;
     super.disconnectedCallback();
@@ -88,9 +101,7 @@ export class AdvancedCameraCardPTT extends LitElement {
     }
 
     const target = getPTTTarget(this._config.target);
-    return target?.isAvailable() && target.isSupported() && !target.isForbidden()
-      ? target
-      : undefined;
+    return target?.isPTTAvailable() ? target : undefined;
   }
 
   protected async _startTalking(): Promise<void> {
@@ -106,22 +117,36 @@ export class AdvancedCameraCardPTT extends LitElement {
     this._pressed = true;
     this.requestUpdate();
 
-    await target.unmute();
+    await target.pttStart();
 
-    if (target.isForbidden()) {
+    // pointerup/blur may have happened while the first permission request was
+    // pending. Never turn the UI back on after a release.
+    if (!this._pressed) {
+      return;
+    }
+
+    if (target.isForbidden() || !target.isPTTActive()) {
       this._pressed = false;
     }
     this.requestUpdate();
   }
 
   protected _stopTalking(): void {
-    if (!this._pressed || !this._config) {
-      return;
+    if (this._config) {
+      getPTTTarget(this._config.target)?.pttStop();
     }
 
-    getPTTTarget(this._config.target)?.mute();
-    this._pressed = false;
-    this.requestUpdate();
+    if (this._pressed) {
+      this._pressed = false;
+      this.requestUpdate();
+    }
+  }
+
+  protected _releasePointerCapture(ev: PointerEvent): void {
+    const element = ev.currentTarget as HTMLElement;
+    if (element.hasPointerCapture?.(ev.pointerId)) {
+      element.releasePointerCapture?.(ev.pointerId);
+    }
   }
 
   protected _handlePointerDown(ev: PointerEvent): void {
@@ -139,6 +164,7 @@ export class AdvancedCameraCardPTT extends LitElement {
     ev.preventDefault();
     ev.stopPropagation();
     this._stopTalking();
+    this._releasePointerCapture(ev);
   }
 
   protected _handleKeyDown(ev: KeyboardEvent): void {
@@ -167,17 +193,15 @@ export class AdvancedCameraCardPTT extends LitElement {
     }
 
     const target = getPTTTarget(this._config.target);
-    const available = !!(
-      target?.isAvailable() &&
-      target.isSupported() &&
-      !target.isForbidden()
-    );
+    const available = !!target?.isPTTAvailable();
     const name = this._config.name ?? 'Talk';
-    const title = !target?.isAvailable()
+    const title = !target
       ? `Target ACC "${this._config.target}" is not available`
       : available
         ? name
-        : 'Microphone is unavailable';
+        : target.isForbidden()
+          ? 'Microphone permission is unavailable'
+          : 'PTT audio transport is unavailable';
 
     return html`<ha-card title=${title}>
       <button
