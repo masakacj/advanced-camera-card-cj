@@ -9,8 +9,10 @@ on:
       - 'dist/**'
   workflow_dispatch:
 
+# Versioned GitHub Releases are the install source for HACS. This workflow is
+# validation-only and must never move main while semantic-release is publishing.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: hacs-dist-main
@@ -18,7 +20,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build and publish dist
+    name: Validate HACS build
     runs-on: ubuntu-latest
 
     steps:
@@ -33,8 +35,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Format
-        run: yarn run format
+      - name: Check formatting
+        run: yarn run format-check
 
       - name: Test
         run: yarn run test
@@ -42,32 +44,10 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          # Rollup chunk filenames contain content hashes. The dist directory is
-          # committed in this fork for HACS, so it must be cleaned before every
-          # build or stale chunks from previous builds accumulate indefinitely.
-          # HACS downloads every JS file it finds in dist for dashboard plugins.
+          # Rollup chunk filenames contain content hashes. Always validate from
+          # a clean output directory so stale chunks cannot hide packaging bugs.
           rm -rf dist
           yarn run build
-
-      - name: Commit formatted source and HACS distribution
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # Stage any Prettier fixes first, then force-add the ignored dist output.
-          # `git add -A` also records removal of stale dist chunks deleted before
-          # the build, while the forced add makes sure the fresh ignored files are
-          # included in the distribution commit.
-          git add -A
-          git add -f -A dist
-
-          if git diff --cached --quiet; then
-            echo "source and dist are already up to date"
-          else
-            git commit -m "build: update HACS distribution [skip ci]"
-            git push
-          fi
 
       # This is a personal fork/custom repository, so public-listing metadata
       # such as GitHub Topics and an enabled Issues tab are intentionally optional.
