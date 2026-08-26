@@ -1,13 +1,50 @@
 @use 'provider.scss';
+@import './z-index.scss';
+
+:host {
+  position: relative;
+}
 
 .hidden {
   display: none;
 }
 
-advanced-camera-card-icon {
+.loading-icon {
   position: absolute;
   top: 10px;
   right: 10px;
   color: var(--primary-color);
   cursor: help;
+}
+
+.microphone-button {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: #{$z-index-menu};
+
+  --ha-icon-button-size: 44px;
+
+  pointer-events: auto;
+  color: var(--primary-text-color);
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 50%;
+}
+
+.microphone-button.active {
+  color: white;
+  background: var(
+    --advanced-camera-card-menu-button-critical-color,
+    var(--error-color)
+  );
+}
+
+.microphone-button[disabled] {
+  opacity: 0.5;
+}
+
+.microphone-button advanced-camera-card-icon {
+  position: static;
+  color: inherit;
+  cursor: pointer;
 }

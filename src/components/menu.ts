@@ -8,9 +8,8 @@ import { MenuConfig } from '../config/schema/menu.js';
 import { getEntityTitle } from '../ha/get-entity-title.js';
 import { EntityRegistryManager } from '../ha/registry/entity/types.js';
 import { HomeAssistant } from '../ha/types.js';
-import { localize } from '../localize/localize.js';
 import menuStyle from '../scss/menu.scss';
-import { createGeneralAction, hasAction } from '../utils/action.js';
+import { hasAction } from '../utils/action.js';
 import './icon.js';
 import './submenu/select-button.js';
 import './submenu/submenu-button';
@@ -29,33 +28,8 @@ export class AdvancedCameraCardMenu extends LitElement {
     this._controller.setMenuConfig(menuConfig);
   }
 
-  protected _makeMicrophoneButtonStandalone(button: MenuItem): MenuItem {
-    if (button.title !== localize('config.menu.buttons.microphone')) {
-      return button;
-    }
-
-    const unavailable =
-      !hasAction(button.start_tap_action) && !hasAction(button.tap_action);
-    const active = Object.keys(button.style ?? {}).length > 0;
-
-    return {
-      ...button,
-      enabled: true,
-      permanent: true,
-      start_tap_action: undefined,
-      end_tap_action: undefined,
-      tap_action: unavailable
-        ? undefined
-        : createGeneralAction(
-            active ? 'microphone_disconnect' : 'microphone_unmute',
-          ),
-    };
-  }
-
   set buttons(buttons: MenuItem[]) {
-    this._controller.setButtons(
-      buttons.map((button) => this._makeMicrophoneButtonStandalone(button)),
-    );
+    this._controller.setButtons(buttons);
   }
 
   set expanded(expanded: boolean) {
