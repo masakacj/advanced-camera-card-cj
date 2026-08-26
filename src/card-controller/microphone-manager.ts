@@ -154,9 +154,15 @@ export class MicrophoneManager {
   }
 
   protected _startDisconnectTimer(): void {
+    // Any state change must cancel the previous timer. In particular, pressing
+    // PTT (unmuting) must cancel a release timer that may already be running.
+    this._timer.stop();
+
     const microphoneConfig = this._api.getConfigManager().getConfig()?.live.microphone;
 
-    if (microphoneConfig?.always_connected) {
+    // disconnect_seconds is an idle/release timeout. Never tear down the
+    // microphone while the user is actively holding PTT.
+    if (!this._desireMute || microphoneConfig?.always_connected) {
       return;
     }
 
