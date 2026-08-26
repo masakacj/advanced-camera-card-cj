@@ -197,8 +197,8 @@ export class AdvancedCameraCardPTT extends LitElement {
       >
         <ha-icon
           .icon=${this._pressed
-            ? (this._config.active_icon ?? 'mdi:microphone')
-            : (this._config.icon ?? 'mdi:microphone-off')}
+            ? this._config.active_icon ?? 'mdi:microphone'
+            : this._config.icon ?? 'mdi:microphone-off'}
         ></ha-icon>
         <span>${name}</span>
       </button>
