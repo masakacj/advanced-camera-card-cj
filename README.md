@@ -23,7 +23,7 @@ Add this repository as a HACS custom repository with category **Dashboard**:
 The main card type remains unchanged:
 
 ```yaml
- type: custom:advanced-camera-card
+type: custom:advanced-camera-card
 ```
 
 ## Standalone push-to-talk card
@@ -31,23 +31,23 @@ The main card type remains unchanged:
 Give the main Advanced Camera Card a stable `card_id`:
 
 ```yaml
- type: custom:advanced-camera-card
- card_id: front-door
+type: custom:advanced-camera-card
+card_id: front-door
 
- live:
-   microphone:
-     always_connected: false
-     disconnect_seconds: 10
+live:
+  microphone:
+    always_connected: false
+    disconnect_seconds: 10
 ```
 
 Then add the companion PTT card:
 
 ```yaml
- type: custom:advanced-camera-card-ptt
- target: front-door
- name: 对讲
- icon: mdi:microphone-off
- active_icon: mdi:microphone
+type: custom:advanced-camera-card-ptt
+target: front-door
+name: 对讲
+icon: mdi:microphone-off
+active_icon: mdi:microphone
 ```
 
 The PTT card does not create another camera player or another WebRTC video stream. It controls the microphone manager of the existing Advanced Camera Card target.
